@@ -49,7 +49,7 @@ export function LoadingScreen({ onComplete }: LoadingScreenProps) {
         {/* Title */}
         <div className="space-y-2">
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary-muted bg-clip-text text-transparent">
-            TaskFlow
+            Task Management App
           </h1>
           <p className="text-muted-foreground">
             Your modern task management solution

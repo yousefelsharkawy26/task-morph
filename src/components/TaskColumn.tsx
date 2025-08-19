@@ -28,7 +28,7 @@ export function TaskColumn({ id, title, tasks, onAddTask, onTaskView, onTaskEdit
   const columnStyle = columnStyles[id as keyof typeof columnStyles] || 'bg-muted/50';
 
   return (
-    <div className="flex flex-col w-full sm:min-w-80 sm:max-w-80 sm:w-auto">
+    <div className="col flex flex-col w-full sm:w-auto">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <h2 className="font-semibold text-foreground">{title}</h2>

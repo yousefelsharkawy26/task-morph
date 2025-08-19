@@ -20,7 +20,7 @@ const Index = () => {
               <span className="text-primary-foreground font-bold text-sm">T</span>
             </div>
             <h1 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-primary to-primary-muted bg-clip-text text-transparent">
-              TaskFlow
+              Task Management App
             </h1>
           </div>
           <ThemeToggle />
