@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   DndContext,
   DragEndEvent,
@@ -18,6 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { AddTaskForm } from './AddTaskForm';
 import { Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { createTask, deleteTask, getTasks, updateTask } from '@/lib/task-services';
 
 interface Column {
   id: string;
@@ -30,36 +31,11 @@ const columns: Column[] = [
   { id: 'done', title: 'Done' },
 ];
 
-const initialTasks: Task[] = [
-  {
-    id: '1',
-    title: 'Design user interface mockups',
-    description: 'Create wireframes and high-fidelity designs for the new dashboard',
-    priority: 'high',
-    assignee: 'Alex Chen',
-    dueDate: new Date(2024, 0, 25),
-  },
-  {
-    id: '2',
-    title: 'Set up project repository',
-    description: 'Initialize Git repo and configure CI/CD pipeline',
-    priority: 'medium',
-    assignee: 'Sarah Kim',
-    dueDate: new Date(2024, 0, 22),
-  },
-  {
-    id: '3',
-    title: 'Write API documentation',
-    description: 'Document all endpoints with examples and response schemas',
-    priority: 'low',
-    assignee: 'Mike Johnson',
-    dueDate: new Date(2024, 0, 30),
-  },
-];
+const initialTasks: Task[] = [];
 
 const initialTaskAssignments = {
-  todo: ['1', '2'],
-  'in-progress': ['3'],
+  todo: [],
+  'in-progress': [],
   done: [],
 };
 
@@ -73,6 +49,36 @@ export function TaskBoard() {
   const [taskDetailsOpen, setTaskDetailsOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+
+  useEffect(() => {
+    const loadData = async () => {
+      await getTasks()
+        .then(fetchedTasks => {
+          setTasks(fetchedTasks);
+          const assignments = { todo: [], 'in-progress': [], done: [] };
+          fetchedTasks.forEach(task => {
+            if (task.processNumber === 1) {
+              assignments.todo.push(task.id);
+            } else if (task.processNumber === 2) {
+              assignments['in-progress'].push(task.id);
+            } else if (task.processNumber === 3) {
+              assignments.done.push(task.id);
+            }
+          }); 
+          setTaskAssignments(assignments);
+        })
+        .catch(error => {
+          console.error("Error fetching tasks:", error);
+          toast({
+            title: "Error",
+            description: "Failed to load tasks.",
+            variant: 'destructive',
+          });
+        }); 
+    }
+
+    loadData();
+  }, []);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -125,21 +131,21 @@ export function TaskBoard() {
     });
   };
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveTask(null);
 
     if (!over) return;
-
+    
     const activeId = active.id as string;
     const overId = over.id as string;
-
+    
     const activeColumn = Object.keys(taskAssignments).find(columnId =>
       taskAssignments[columnId].includes(activeId)
     );
-
+    
     if (!activeColumn) return;
-
+    
     // If dropping on a column, move to end
     const targetColumn = columns.find(col => col.id === overId);
     if (targetColumn) {
@@ -147,10 +153,29 @@ export function TaskBoard() {
         const newAssignments = { ...prev };
         newAssignments[activeColumn] = newAssignments[activeColumn].filter(id => id !== activeId);
         newAssignments[targetColumn.id] = [...newAssignments[targetColumn.id], activeId];
+        
+        // Update the process number based on the target column
         return newAssignments;
       });
+      
+      
+      
       return;
     }
+    
+    console.log("Drag End Event 2:", activeId);
+    const taskToUpdate = tasks.find(task => task.id === activeId);
+    console.log("Updating task:", taskToUpdate);
+
+    await updateTask(activeId, {
+          title: taskToUpdate?.title || '',
+          description: taskToUpdate?.description || '',
+          priority: taskToUpdate?.priority || 'medium',
+          assignee: taskToUpdate?.assignee || '',
+          dueDate: taskToUpdate?.dueDate ? new Date(taskToUpdate.dueDate).toISOString() : '',
+          processNumber: activeColumn === 'todo' ? 1 :
+          activeColumn === 'in-progress' ? 2 : 3,
+        })
 
     // Reordering within the same column
     const overColumn = Object.keys(taskAssignments).find(columnId =>
@@ -175,31 +200,73 @@ export function TaskBoard() {
     setDialogOpen(true);
   };
 
-  const handleTaskSubmit = (newTask: Omit<Task, 'id'>) => {
-    const task: Task = {
-      ...newTask,
-      id: Date.now().toString(),
-    };
-
+  const handleTaskSubmit = async (newTask: Omit<Task, 'id'>) => {
     if (editingTask) {
       // Update existing task
-      setTasks(prev => prev.map(t => t.id === editingTask.id ? { ...task, id: editingTask.id } : t));
-      setEditingTask(null);
-      toast({
-        title: "Task updated",
-        description: "Task has been successfully updated.",
-      });
+      setTasks(prev => prev.map(t => t.id === editingTask.id ? { ...newTask, id: editingTask.id } : t));
+      await updateTask(editingTask.id, {
+        title: newTask.title,
+        description: newTask.description,
+        priority: newTask.priority,
+        processNumber: editingTask.processNumber,
+        assignee: newTask.assignee,
+        dueDate: newTask.dueDate ? newTask.dueDate.toISOString() : '',})
+        .then(() => {
+          setEditingTask(null);
+          toast({
+            title: "Task updated",
+            description: "Task has been successfully updated.",
+          });
+        })
+        .catch(error => {
+          console.error("Error updating task:", error);
+          toast({
+            title: "Error",
+            description: "Failed to update task.",
+            variant: 'destructive',
+          });
+        });
     } else {
       // Add new task
+
+      const task: Task = {
+        id: crypto.randomUUID(),
+        title: newTask.title,
+        description: newTask.description || '',
+        priority: newTask.priority,
+        assignee: newTask.assignee || '',
+        dueDate: newTask.dueDate ? new Date(newTask.dueDate) : undefined,
+        processNumber: selectedColumnId === 'todo' ? 1 :
+          selectedColumnId === 'in-progress' ? 2 : 3,
+      };  
+
       setTasks(prev => [...prev, task]);
       setTaskAssignments(prev => ({
         ...prev,
         [selectedColumnId]: [...prev[selectedColumnId], task.id],
       }));
-      toast({
-        title: "Task created",
-        description: "New task has been successfully created.",
-      });
+
+      await createTask({
+        title: task.title,
+        description: task.description || '',
+        priority: task.priority,
+        assignee: task.assignee || '',
+        dueDate: task.dueDate ? task.dueDate.toISOString() : '',
+        processNumber: task.processNumber,
+      }).then(() => {
+          toast({
+            title: "Task created",
+            description: "New task has been successfully created.",
+          });
+        })
+        .catch(error => {
+          console.error("Error creating task:", error);
+          toast({
+            title: "Error",
+            description: "Failed to create task.",
+            variant: 'destructive',
+          });
+        });
     }
     setDialogOpen(false);
   };
@@ -221,7 +288,23 @@ export function TaskBoard() {
     setDialogOpen(true);
   };
 
-  const handleTaskDelete = (taskId: string) => {
+  const handleTaskDelete = async (taskId: string) => {
+
+    await deleteTask(taskId)
+      .then(() => {
+        toast({
+          title: "Task deleted",
+          description: "Task has been successfully deleted.",
+        });
+      })
+      .catch(error => {
+        console.error("Error deleting task:", error);
+        toast({
+          title: "Error",
+          description: "Failed to delete task.",
+          variant: 'destructive',
+        });
+      });
     setTasks(prev => prev.filter(t => t.id !== taskId));
     setTaskAssignments(prev => {
       const newAssignments = { ...prev };

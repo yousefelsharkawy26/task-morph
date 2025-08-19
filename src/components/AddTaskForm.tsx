@@ -18,6 +18,7 @@ export function AddTaskForm({ onSubmit, initialData }: AddTaskFormProps) {
     priority: 'medium' as Task['priority'],
     assignee: '',
     dueDate: '',
+    processNumber: 1,
   });
 
   useEffect(() => {
@@ -27,7 +28,8 @@ export function AddTaskForm({ onSubmit, initialData }: AddTaskFormProps) {
         description: initialData.description || '',
         priority: initialData.priority,
         assignee: initialData.assignee || '',
-        dueDate: initialData.dueDate ? initialData.dueDate.toISOString().split('T')[0] : '',
+        dueDate: initialData.dueDate ? new Date(initialData.dueDate).toISOString().split('T')[0] : '',
+        processNumber: initialData.processNumber || 1,
       });
     } else {
       setFormData({
@@ -36,6 +38,7 @@ export function AddTaskForm({ onSubmit, initialData }: AddTaskFormProps) {
         priority: 'medium',
         assignee: '',
         dueDate: '',
+        processNumber: 1,
       });
     }
   }, [initialData]);
@@ -60,6 +63,7 @@ export function AddTaskForm({ onSubmit, initialData }: AddTaskFormProps) {
         priority: 'medium',
         assignee: '',
         dueDate: '',
+        processNumber: 1,
       });
     }
   };

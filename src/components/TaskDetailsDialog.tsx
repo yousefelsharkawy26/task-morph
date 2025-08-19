@@ -82,7 +82,7 @@ export function TaskDetailsDialog({ task, open, onOpenChange, onEdit, onDelete }
                 <h4 className="font-medium text-sm text-muted-foreground mb-1">Due Date</h4>
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4" />
-                  <span className="text-sm">{task.dueDate.toLocaleDateString()}</span>
+                  <span className="text-sm">{new Date(task.dueDate).toLocaleDateString()}</span>
                 </div>
               </div>
             )}

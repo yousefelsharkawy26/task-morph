@@ -12,6 +12,7 @@ export interface Task {
   priority: 'low' | 'medium' | 'high';
   assignee?: string;
   dueDate?: Date;
+  processNumber?: number; // New field for process number
 }
 
 interface TaskCardProps {
@@ -103,7 +104,12 @@ export function TaskCard({ task, onEdit, onDelete, onView }: TaskCardProps) {
             {task.dueDate && (
               <div className="flex items-center gap-1">
                 <Clock className="w-3 h-3" />
-                <span>{task.dueDate.toLocaleDateString()}</span>
+                <span>{new Date(task.dueDate).toLocaleDateString("en-EG", { 
+                  weekday: "short",
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                })}</span>
               </div>
             )}
           </div>
