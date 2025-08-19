@@ -1,3 +1,32 @@
+# ✅ Task Manager App
+
+A modern **Task Management Web App** built with **React + TypeScript + Vite**, styled with **TailwindCSS** and **shadcn/ui**.  
+It helps you organize tasks efficiently using a clean Kanban-style board with drag-and-drop functionality.
+
+---
+
+## ✨ Features
+
+- 📌 **Add / Edit / Delete Tasks**
+- 📂 **Kanban Board** with task columns (To Do, In Progress, Done)
+- 🎨 **Beautiful UI** using TailwindCSS + shadcn/ui components
+- 🌗 **Light / Dark Mode Toggle**
+- ⚡ **Fast & Optimized** with Vite
+- 📱 **Responsive Design** (Mobile-friendly)
+
+---
+
+## 🛠️ Tech Stack
+
+- **Frontend:** React 18 + TypeScript  
+- **Styling:** TailwindCSS + shadcn/ui  
+- **State Management:** React Hooks  
+- **Build Tool:** Vite  
+- **Other:** Framer Motion (animations)  
+
+---
+
+
 ## 📂 Project Structure
 
 ```plaintext
