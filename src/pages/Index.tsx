@@ -1,12 +1,36 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from 'react';
+import { TaskBoard } from '@/components/TaskBoard';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { LoadingScreen } from '@/components/LoadingScreen';
 
 const Index = () => {
+  const [isLoading, setIsLoading] = useState(true);
+
+  if (isLoading) {
+    return <LoadingScreen onComplete={() => setIsLoading(false)} />;
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="border-b border-border/50 bg-background/80 backdrop-blur-sm sticky top-0 z-40">
+        <div className="flex items-center justify-between px-6 py-4">
+          <div className="flex items-center gap-4">
+            <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center shadow-glow">
+              <span className="text-primary-foreground font-bold text-sm">T</span>
+            </div>
+            <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-primary-muted bg-clip-text text-transparent">
+              TaskFlow
+            </h1>
+          </div>
+          <ThemeToggle />
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="animate-fade-in">
+        <TaskBoard />
+      </main>
     </div>
   );
 };
