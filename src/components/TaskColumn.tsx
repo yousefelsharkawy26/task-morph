@@ -25,7 +25,7 @@ export function TaskColumn({ id, title, tasks, onAddTask }: TaskColumnProps) {
   const columnStyle = columnStyles[id as keyof typeof columnStyles] || 'bg-muted/50';
 
   return (
-    <div className="flex flex-col min-w-72 max-w-72 sm:min-w-80 sm:max-w-80">
+    <div className="flex flex-col w-full sm:min-w-80 sm:max-w-80 sm:w-auto">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <h2 className="font-semibold text-foreground">{title}</h2>
@@ -47,7 +47,7 @@ export function TaskColumn({ id, title, tasks, onAddTask }: TaskColumnProps) {
         ref={setNodeRef}
         className={`task-column ${columnStyle} ${
           isOver ? 'ring-2 ring-primary/50 bg-primary/5' : ''
-        }`}
+        } h-96 sm:h-[500px] overflow-y-auto`}
       >
         <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
           <div className="space-y-3">
