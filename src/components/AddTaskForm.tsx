@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -8,9 +8,10 @@ import { Task } from './TaskCard';
 
 interface AddTaskFormProps {
   onSubmit: (task: Omit<Task, 'id'>) => void;
+  initialData?: Task;
 }
 
-export function AddTaskForm({ onSubmit }: AddTaskFormProps) {
+export function AddTaskForm({ onSubmit, initialData }: AddTaskFormProps) {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -18,6 +19,26 @@ export function AddTaskForm({ onSubmit }: AddTaskFormProps) {
     assignee: '',
     dueDate: '',
   });
+
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        title: initialData.title,
+        description: initialData.description || '',
+        priority: initialData.priority,
+        assignee: initialData.assignee || '',
+        dueDate: initialData.dueDate ? initialData.dueDate.toISOString().split('T')[0] : '',
+      });
+    } else {
+      setFormData({
+        title: '',
+        description: '',
+        priority: 'medium',
+        assignee: '',
+        dueDate: '',
+      });
+    }
+  }, [initialData]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,13 +53,15 @@ export function AddTaskForm({ onSubmit }: AddTaskFormProps) {
       dueDate: formData.dueDate ? new Date(formData.dueDate) : undefined,
     });
 
-    setFormData({
-      title: '',
-      description: '',
-      priority: 'medium',
-      assignee: '',
-      dueDate: '',
-    });
+    if (!initialData) {
+      setFormData({
+        title: '',
+        description: '',
+        priority: 'medium',
+        assignee: '',
+        dueDate: '',
+      });
+    }
   };
 
   const handleChange = (field: string, value: string) => {
@@ -110,7 +133,7 @@ export function AddTaskForm({ onSubmit }: AddTaskFormProps) {
 
       <div className="flex gap-2 pt-4">
         <Button type="submit" className="flex-1 gradient-primary">
-          Add Task
+          {initialData ? 'Update Task' : 'Add Task'}
         </Button>
       </div>
     </form>

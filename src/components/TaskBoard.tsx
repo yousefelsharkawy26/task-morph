@@ -12,10 +12,12 @@ import {
 import { arrayMove } from '@dnd-kit/sortable';
 import { TaskColumn } from './TaskColumn';
 import { TaskCard, Task } from './TaskCard';
+import { TaskDetailsDialog } from './TaskDetailsDialog';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AddTaskForm } from './AddTaskForm';
 import { Plus } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface Column {
   id: string;
@@ -62,11 +64,15 @@ const initialTaskAssignments = {
 };
 
 export function TaskBoard() {
+  const { toast } = useToast();
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [taskAssignments, setTaskAssignments] = useState(initialTaskAssignments);
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedColumnId, setSelectedColumnId] = useState<string>('todo');
+  const [taskDetailsOpen, setTaskDetailsOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -175,12 +181,59 @@ export function TaskBoard() {
       id: Date.now().toString(),
     };
 
-    setTasks(prev => [...prev, task]);
-    setTaskAssignments(prev => ({
-      ...prev,
-      [selectedColumnId]: [...prev[selectedColumnId], task.id],
-    }));
+    if (editingTask) {
+      // Update existing task
+      setTasks(prev => prev.map(t => t.id === editingTask.id ? { ...task, id: editingTask.id } : t));
+      setEditingTask(null);
+      toast({
+        title: "Task updated",
+        description: "Task has been successfully updated.",
+      });
+    } else {
+      // Add new task
+      setTasks(prev => [...prev, task]);
+      setTaskAssignments(prev => ({
+        ...prev,
+        [selectedColumnId]: [...prev[selectedColumnId], task.id],
+      }));
+      toast({
+        title: "Task created",
+        description: "New task has been successfully created.",
+      });
+    }
     setDialogOpen(false);
+  };
+
+  const handleTaskView = (task: Task) => {
+    setSelectedTask(task);
+    setTaskDetailsOpen(true);
+  };
+
+  const handleTaskEdit = (task: Task) => {
+    setEditingTask(task);
+    // Find which column the task is in
+    const columnId = Object.keys(taskAssignments).find(colId => 
+      taskAssignments[colId].includes(task.id)
+    );
+    if (columnId) {
+      setSelectedColumnId(columnId);
+    }
+    setDialogOpen(true);
+  };
+
+  const handleTaskDelete = (taskId: string) => {
+    setTasks(prev => prev.filter(t => t.id !== taskId));
+    setTaskAssignments(prev => {
+      const newAssignments = { ...prev };
+      Object.keys(newAssignments).forEach(columnId => {
+        newAssignments[columnId] = newAssignments[columnId].filter(id => id !== taskId);
+      });
+      return newAssignments;
+    });
+    toast({
+      title: "Task deleted",
+      description: "Task has been successfully deleted.",
+    });
   };
 
   return (
@@ -204,9 +257,12 @@ export function TaskBoard() {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add New Task</DialogTitle>
+              <DialogTitle>{editingTask ? 'Edit Task' : 'Add New Task'}</DialogTitle>
             </DialogHeader>
-            <AddTaskForm onSubmit={handleTaskSubmit} />
+            <AddTaskForm 
+              onSubmit={handleTaskSubmit}
+              initialData={editingTask || undefined}
+            />
           </DialogContent>
         </Dialog>
       </div>
@@ -217,11 +273,7 @@ export function TaskBoard() {
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-<<<<<<< HEAD
-        <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 overflow-x-auto pb-6 col-3">
-=======
         <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 overflow-x-auto pb-6">
->>>>>>> 93a310b2d750a17f73a77b431b0a21c20d89533b
           {columns.map((column) => (
             <TaskColumn
               key={column.id}
@@ -231,6 +283,9 @@ export function TaskBoard() {
                 tasks.find(task => task.id === id)!
               ).filter(Boolean)}
               onAddTask={handleAddTask}
+              onTaskView={handleTaskView}
+              onTaskEdit={handleTaskEdit}
+              onTaskDelete={handleTaskDelete}
             />
           ))}
         </div>
@@ -239,6 +294,14 @@ export function TaskBoard() {
           {activeTask && <TaskCard task={activeTask} />}
         </DragOverlay>
       </DndContext>
+
+      <TaskDetailsDialog
+        task={selectedTask}
+        open={taskDetailsOpen}
+        onOpenChange={setTaskDetailsOpen}
+        onEdit={handleTaskEdit}
+        onDelete={handleTaskDelete}
+      />
     </div>
   );
 }

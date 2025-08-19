@@ -2,7 +2,8 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Clock, User } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Clock, User, Edit, Trash2 } from 'lucide-react';
 
 export interface Task {
   id: string;
@@ -15,6 +16,9 @@ export interface Task {
 
 interface TaskCardProps {
   task: Task;
+  onEdit?: (task: Task) => void;
+  onDelete?: (taskId: string) => void;
+  onView?: (task: Task) => void;
 }
 
 const priorityColors = {
@@ -23,7 +27,7 @@ const priorityColors = {
   high: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
 };
 
-export function TaskCard({ task }: TaskCardProps) {
+export function TaskCard({ task, onEdit, onDelete, onView }: TaskCardProps) {
   const {
     attributes,
     listeners,
@@ -39,25 +43,46 @@ export function TaskCard({ task }: TaskCardProps) {
     opacity: isDragging ? 0.5 : 1,
   };
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onView?.(task);
+  };
+
+  const handleEdit = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onEdit?.(task);
+  };
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onDelete?.(task.id);
+  };
+
   return (
     <Card
       ref={setNodeRef}
       style={style}
       {...attributes}
       {...listeners}
-      className="task-card group"
+      className="task-card group cursor-pointer"
+      onClick={handleCardClick}
     >
       <div className="space-y-3">
         <div className="flex items-start justify-between">
           <h3 className="font-semibold text-sm leading-tight line-clamp-2">
             {task.title}
           </h3>
-          <Badge
-            variant="secondary"
-            className={`text-xs px-2 py-1 ${priorityColors[task.priority]}`}
-          >
-            {task.priority}
-          </Badge>
+          <div className="flex items-center gap-1">
+            <Badge
+              variant="secondary"
+              className={`text-xs px-2 py-1 ${priorityColors[task.priority]}`}
+            >
+              {task.priority}
+            </Badge>
+          </div>
         </div>
 
         {task.description && (
@@ -66,20 +91,41 @@ export function TaskCard({ task }: TaskCardProps) {
           </p>
         )}
 
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
-          {task.assignee && (
-            <div className="flex items-center gap-1">
-              <User className="w-3 h-3" />
-              <span>{task.assignee}</span>
-            </div>
-          )}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            {task.assignee && (
+              <div className="flex items-center gap-1">
+                <User className="w-3 h-3" />
+                <span>{task.assignee}</span>
+              </div>
+            )}
 
-          {task.dueDate && (
-            <div className="flex items-center gap-1">
-              <Clock className="w-3 h-3" />
-              <span>{task.dueDate.toLocaleDateString()}</span>
-            </div>
-          )}
+            {task.dueDate && (
+              <div className="flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                <span>{task.dueDate.toLocaleDateString()}</span>
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-0 hover:bg-primary/10"
+              onClick={handleEdit}
+            >
+              <Edit className="w-3 h-3" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-0 hover:bg-destructive/10 text-destructive"
+              onClick={handleDelete}
+            >
+              <Trash2 className="w-3 h-3" />
+            </Button>
+          </div>
         </div>
       </div>
     </Card>

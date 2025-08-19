@@ -9,6 +9,9 @@ interface TaskColumnProps {
   title: string;
   tasks: Task[];
   onAddTask: (columnId: string) => void;
+  onTaskView?: (task: Task) => void;
+  onTaskEdit?: (task: Task) => void;
+  onTaskDelete?: (taskId: string) => void;
 }
 
 const columnStyles = {
@@ -17,7 +20,7 @@ const columnStyles = {
   done: 'column-done border-l-4 border-l-green-400',
 };
 
-export function TaskColumn({ id, title, tasks, onAddTask }: TaskColumnProps) {
+export function TaskColumn({ id, title, tasks, onAddTask, onTaskView, onTaskEdit, onTaskDelete }: TaskColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id,
   });
@@ -25,11 +28,7 @@ export function TaskColumn({ id, title, tasks, onAddTask }: TaskColumnProps) {
   const columnStyle = columnStyles[id as keyof typeof columnStyles] || 'bg-muted/50';
 
   return (
-<<<<<<< HEAD
-    <div className="flex flex-col w-full">
-=======
     <div className="flex flex-col w-full sm:min-w-80 sm:max-w-80 sm:w-auto">
->>>>>>> 93a310b2d750a17f73a77b431b0a21c20d89533b
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <h2 className="font-semibold text-foreground">{title}</h2>
@@ -56,7 +55,13 @@ export function TaskColumn({ id, title, tasks, onAddTask }: TaskColumnProps) {
         <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
           <div className="space-y-3">
             {tasks.map((task) => (
-              <TaskCard key={task.id} task={task} />
+              <TaskCard 
+                key={task.id} 
+                task={task}
+                onView={onTaskView}
+                onEdit={onTaskEdit}
+                onDelete={onTaskDelete}
+              />
             ))}
             {tasks.length === 0 && (
               <div className="text-center py-8 text-muted-foreground">
