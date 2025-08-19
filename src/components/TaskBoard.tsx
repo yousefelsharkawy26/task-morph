@@ -184,20 +184,20 @@ export function TaskBoard() {
   };
 
   return (
-    <div className="h-full p-6">
-      <div className="flex items-center justify-between mb-8">
+    <div className="h-full p-4 sm:p-6">
+      <div className="flex items-center justify-between mb-6 sm:mb-8">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary-muted bg-clip-text text-transparent">
+          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary to-primary-muted bg-clip-text text-transparent">
             Task Board
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-muted-foreground mt-1 text-sm sm:text-base">
             Manage your projects with drag-and-drop simplicity
           </p>
         </div>
         
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="gradient-primary text-primary-foreground shadow-glow">
+            <Button className="gradient-primary text-primary-foreground shadow-glow text-sm sm:text-base">
               <Plus className="w-4 h-4 mr-2" />
               Add Task
             </Button>
@@ -217,7 +217,11 @@ export function TaskBoard() {
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
+<<<<<<< HEAD
         <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 overflow-x-auto pb-6 col-3">
+=======
+        <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 overflow-x-auto pb-6">
+>>>>>>> 93a310b2d750a17f73a77b431b0a21c20d89533b
           {columns.map((column) => (
             <TaskColumn
               key={column.id}
